@@ -2,7 +2,6 @@
 pub use uvoxid::UvoxId;
 pub use tdt::core::TimeDelta;
 pub use uvoxxyz::types::Cartesian;
-use uuid::Uuid;
 use std::cmp::Ordering;
 use std::collections::HashMap;
 
