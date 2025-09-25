@@ -1,0 +1,23 @@
+[package]
+name = "chronovox"
+version = "0.1.0"
+edition = "2024"
+authors = ["Dr. Ippy <jdplumbingsoflo@gmail.com>"]
+license = "MIT"
+repository = "https://github.com/JDPlumbing/chronovox"
+
+[dependencies]
+chrono = { version = "0.4", features = ["serde"] }
+serde = { version = "1", features = ["derive"] }
+reqwest = "0.12.23"
+serde_json = "1.0.145"
+supabasic = "0.2.4"
+tdt = "0.3.0"
+uuid = { version = "1", features = ["serde", "v4"] }
+thiserror = "1.0"
+uvoxid = "0.2.0"
+uvoxxyz = "0.2.0"
+dotenvy = "0.15.7"
+
+[dev-dependencies]
+tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
