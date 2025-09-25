@@ -1,15 +1,18 @@
+// ===== Imports =====
 pub use uvoxid::UvoxId;
 pub use tdt::core::TimeDelta;
 pub use uvoxxyz::types::Cartesian;
-
+use uuid::Uuid;
 use std::cmp::Ordering;
 use std::collections::HashMap;
 
-pub mod error; // declare the module
-pub mod persist; // if you want persist.rs exposed too
+// ===== Module Declarations and Re-exports =====
+pub mod error;
+pub mod persist;
 pub use persist::{insert_event_for_entity, fetch_events_for_entity};
-// optional re-exports
 pub use error::{ChronovoxError, Result};
+
+// ===== Structs, Enums, and Type Definitions =====
 
 /// A Chronovox event: something happening at a place + time.
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
@@ -22,7 +25,7 @@ pub struct ChronoEvent {
 }
 
 /// Event type / payload
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]ca
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub enum EventKind {
     Spawn,
     Move { offset: Cartesian },
@@ -36,6 +39,14 @@ pub struct Timeline {
     pub events: Vec<ChronoEvent>,
 }
 
+#[derive(Debug, Clone)]
+pub struct EntityState {
+    pub pos: Cartesian,
+    pub alive: bool,
+}
+
+// ===== Implementations =====
+
 impl Timeline {
     pub fn new() -> Self {
         Self { events: Vec::new() }
@@ -44,27 +55,7 @@ impl Timeline {
     pub fn push(&mut self, event: ChronoEvent) {
         self.events.push(event);
     }
-}
 
-impl PartialEq for ChronoEvent {
-    fn eq(&self, other: &Self) -> bool {
-        self.t.ticks("nanoseconds") == other.t.ticks("nanoseconds")
-    }
-}
-impl Eq for ChronoEvent {}
-
-impl PartialOrd for ChronoEvent {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.t.ticks("nanoseconds").cmp(&other.t.ticks("nanoseconds")))
-    }
-}
-impl Ord for ChronoEvent {
-    fn cmp(&self, other: &Self) -> Ordering {
-        self.t.ticks("nanoseconds").cmp(&other.t.ticks("nanoseconds"))
-    }
-}
-
-impl Timeline {
     pub fn insert(&mut self, event: ChronoEvent) {
         self.events.push(event);
         self.events.sort(); // keep it ordered
@@ -87,15 +78,7 @@ impl Timeline {
     pub fn query_by_id(&self, id: &UvoxId) -> Vec<&ChronoEvent> {
         self.events.iter().filter(|e| &e.id == id).collect()
     }
-}
 
-#[derive(Debug, Clone)]
-pub struct EntityState {
-    pub pos: Cartesian,
-    pub alive: bool,
-}
-
-impl Timeline {
     pub fn playback(&self) -> HashMap<UvoxId, EntityState> {
         let mut state = HashMap::new();
         for e in self.iter_chronological() {
@@ -122,17 +105,7 @@ impl Timeline {
         }
         state
     }
-}
 
-fn interpolate(prev: &Cartesian, next: &Cartesian, frac: f64) -> Cartesian {
-    Cartesian {
-        x: prev.x + frac * (next.x - prev.x),
-        y: prev.y + frac * (next.y - prev.y),
-        z: prev.z + frac * (next.z - prev.z),
-    }
-}
-
-impl Timeline {
     /// Reconstruct state up to a given time (with interpolation for Move)
     pub fn playback_until(&self, cutoff_ns: i64) -> HashMap<UvoxId, EntityState> {
         let mut state: HashMap<UvoxId, EntityState> = HashMap::new();
@@ -189,9 +162,7 @@ impl Timeline {
 
         state
     }
-}
 
-impl Timeline {
     pub fn len(&self) -> usize {
         self.events.len()
     }
@@ -200,6 +171,55 @@ impl Timeline {
         self.events.is_empty()
     }
 }
+
+impl ChronoEvent {
+    pub fn dummy() -> Self {
+        Self {
+            id: UvoxId {
+                frame_id: 1,
+                r_um: 0,
+                lat_code: 0,
+                lon_code: 0,
+            },
+            t: TimeDelta::from_now(),
+            kind: EventKind::Spawn,
+            payload: None,
+        }
+    }
+}
+
+
+// ===== Helper Functions =====
+
+fn interpolate(prev: &Cartesian, next: &Cartesian, frac: f64) -> Cartesian {
+    Cartesian {
+        x: prev.x + frac * (next.x - prev.x),
+        y: prev.y + frac * (next.y - prev.y),
+        z: prev.z + frac * (next.z - prev.z),
+    }
+}
+
+// ===== Trait Implementations =====
+
+impl PartialEq for ChronoEvent {
+    fn eq(&self, other: &Self) -> bool {
+        self.t.ticks("nanoseconds") == other.t.ticks("nanoseconds")
+    }
+}
+impl Eq for ChronoEvent {}
+
+impl PartialOrd for ChronoEvent {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.t.ticks("nanoseconds").cmp(&other.t.ticks("nanoseconds")))
+    }
+}
+impl Ord for ChronoEvent {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.t.ticks("nanoseconds").cmp(&other.t.ticks("nanoseconds"))
+    }
+}
+
+// ===== Iterator Implementations =====
 
 impl IntoIterator for Timeline {
     type Item = ChronoEvent;

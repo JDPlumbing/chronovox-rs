@@ -1601,9 +1601,9 @@ dependencies = [
 
 [[package]]
 name = "tdt"
-version = "0.3.0"
+version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "51e1903718fe081034ef0a2d27ceb9f3003051df8b289c090357990cce23993c"
+checksum = "9c3e16d3cbb76d3d6a668017a4486361184e46c45d20dc55c63b2e60bf7368e3"
 dependencies = [
  "chrono",
  "clap",

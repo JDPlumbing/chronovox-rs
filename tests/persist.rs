@@ -1,36 +1,40 @@
 // tests/persist.rs
-use chronovox::{insert_event_for_entity, fetch_events_for_entity};
 use supabasic::Supabase;
+use supabasic::entities::Entity;
 use uuid::Uuid;
 use dotenvy::dotenv;
 use std::env;
+use chrono::Utc;
+
+use chronovox::{insert_event_for_entity, fetch_events_for_entity, ChronoEvent, EventKind, Timeline};
+use uvoxid::UvoxId;
+use tdt::core::TimeDelta;
+use serde_json::json;
+
 
 #[tokio::test]
-async fn test_insert_and_fetch_event() -> Result<(), Box<dyn std::error::Error>> {
-    dotenv().ok();
-    let url = env::var("SUPABASE_URL")?;
-    let key = env::var("SUPABASE_KEY")?;
-    let supa = Supabase::new(&url, &key);
+async fn test_insert_and_fetch_event() {
+    dotenvy::dotenv().ok();
+    let url = std::env::var("SUPABASE_URL").unwrap();
+    let key = std::env::var("SUPABASE_KEY").unwrap();
+    let supa = supabasic::Supabase::new(&url, &key);
 
-    // Step 1: Create a dummy entity (use supabasic’s entity helper)
-    let entity_id = supa.create_entity("persist-test-entity").await?;
+    // 1. Create entity
+    let entity_id = supa.create_entity("test-entity").await.unwrap();
     println!("Created entity_id = {}", entity_id);
 
-    // Step 2: Make a dummy ChronoEvent
-    let dummy_event = chronovox::ChronoEvent::dummy(); // assume you have a helper, otherwise stub one
-
-    // Step 3: Insert event for entity
-    let event_id = insert_event_for_entity(&supa, entity_id, &dummy_event).await?;
+    // 2. Insert event
+    let event = chronovox::ChronoEvent::dummy(); // use your helper
+    let event_id = chronovox::insert_event_for_entity(&supa, entity_id, &event)
+        .await
+        .unwrap();
     println!("Inserted event_id = {}", event_id);
 
-    // Step 4: Fetch timeline back
-    let timeline = fetch_events_for_entity(&supa, entity_id).await?;
+    // 3. Fetch events
+    let timeline = chronovox::fetch_events_for_entity(&supa, entity_id)
+        .await
+        .unwrap();
     println!("Fetched timeline with {} events", timeline.len());
 
-    assert!(
-        timeline.len() > 0,
-        "Expected at least one event in timeline, got 0"
-    );
-
-    Ok(())
+    assert!(timeline.len() > 0, "Timeline should contain at least one event");
 }
