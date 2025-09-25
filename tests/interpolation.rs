@@ -12,6 +12,7 @@ fn make_event(anchor: &UvoxId, nanos: i64, kind: EventKind) -> ChronoEvent {
         id: anchor.clone(),
         t: TimeDelta::between(start, end),
         kind,
+        payload: None,
     }
 }
 

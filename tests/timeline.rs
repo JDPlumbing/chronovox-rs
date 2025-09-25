@@ -18,6 +18,7 @@ fn can_create_and_store_event() {
         id: anchor,
         t: td,
         kind: EventKind::Move { offset: Cartesian { x: 1.0, y: 0.0, z: 0.0 } },
+        payload: None,
     };
 
     timeline.push(e.clone());
